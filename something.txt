@@ -1,0 +1,360 @@
+################ terminal ###############
+Usage: 命令 [OPTION]... [FILE]...
+说明文字...
+Options:
+  -a, --all        显示所有
+  -l               长格式显示
+  -h, --help       显示帮助
+
+# Usage符号
+这些符号是“格式说明”，不是要你原样输入：
+符号	含义
+[]	可选，可写可不写
+<> 或大写单词	必填占位符，比如 FILE、DIRECTORY
+...	可以重复多个
+|	或者，二选一
+{}	分组
+--	选项结束，后面都当文件名
+
+# Options部分
+-a, --all                表示短选项 -a 和长选项 --all 等价
+-l                       表示只有短选项
+-o FILE, --output=FILE   表示这个选项后面要带参数
+
+实用小技巧:
+# 更详细的说明
+man grep
+man -k 关键词
+NAME：命令名和一句话说明
+SYNOPSIS：用法概要，最重要
+OPTIONS：所有选项
+# 分页查看输出
+ls --help | less
+# 搜索某个选项
+命令 --help | grep -i "recursive"
+
+
+0：标准输入 stdin
+1：标准输出 stdout
+2：标准错误 stderr
+>：重定向输出(> 默认就是重定向文件描述符 1，也就是标准输出)
+/dev/null：Linux 里的“黑洞设备”，写进去的东西会被直接丢弃，读它什么也读不到
+command 1>/dev/null 2>&1
+表示：正常输出和错误输出都丢弃
+command 2>/dev/null
+表示：只丢弃错误输出，正常输出还显示
+
+sed -i 's/^torch==2\.4\.1$/torch==2.7.1/'
+sed流编辑器(用于文本替换)
+(-i表示in-place直接修改原文件)
+(替换命令为"s/查找内容/替换内容/")
+(使用BRE基本正则而不是ERE扩展正则,特殊字符需要反斜杠;. 在正则里是"任意字符",所以用 \. 转义成字面意义的点;正则表达式中^行首$行尾)
+
+tee work/logs/install.log
+接收前面管道的输入，一边打印到屏幕，一边写入日志文件
+echo "内容" | sudo tee -a /etc/somefile      # ✅ 生效
+参数-a表示追加写入而不是每次都覆盖
+配合 sudo 往需要权限的文件里写东西
+
+sudo chown -R "$(id -u):$(id -g)" .git/modules/XPolicyLab
+用管理员权限把该目录及其内部所有文件的所有者和所属组递归地改回当前普通用户
+id -u：输出当前用户的 UID（用户 ID），例如 1000
+id -g：输出当前用户的主组 GID（组 ID），例如 1000
+$(...) 是命令替换，先执行里面的命令，把结果填进来
+外面的双引号是为了防止结果中有特殊字符或空格
+
+
+一键安装zoxide
+curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
+
+################## ros2 #################
+# 一键动手安装ros2
+wget http://fishros.com/install -O fishros && . fishros
+wget 会连接到 http://fishros.com/install 这个地址，并获取其内容（一个安装脚本）
+-O用于指定下载后保存到本地的文件名。这里它将下载的内容保存为一个名为 fishros 的本地文件
+. fishros表示在当前 shell 环境中执行脚本文件 fishros
+
+rosdep install --from-paths src --ignore-src -r -y
+
+mkdir build && cd build
+cmake ..
+make -j`nproc`
+sudo make install
+
+配置项目并生成构建系统cmake -B build
+构建并安装项目cmake --build build -j`nproc`
+
+
+
+################## git ##################
+# 使用ed25519算法生成ssh密钥对(私钥和公钥)
+ssh-keygen -t ed25519 -C "your_email@example.com"
+(Your identification has been saved in /home/zhangmeng/.ssh/id_ed25519
+Your public key has been saved in /home/zhangmeng/.ssh/id_ed25519.pub)
+# 查看公钥
+cat ~/.ssh/id_ed25519.pub
+(以 ssh-ed25519 开头，以你的邮箱结尾)
+
+# 让所有新建仓库默认都叫main
+git config --global init.defaultBranch main
+# 创建本地仓库
+git init
+# 删除原来的仓库
+git remote remove origin
+# 添加远程地址
+git remote add origin git@github.com:Zhang-Meng-111/learning_stuff.git
+git remote -v(显示fetch和push地址)
+# 提交到本地仓库
+git add .
+git commit -m "提交"
+# 推送到远程仓库并设置关联
+(-u设置上游分支,以后直接git push)
+(仅设置关联(仅将本地 main 分支的上游关联指向 origin/main)git branch --set-upstream-to=origin/main main)
+(本地分支名和远程分支名不一样:git push -u origin main:feature)
+(全称是git push --set-upstream origin main:feature)
+(仅关联git branch --set-upstream-to=origin/feature main)
+git push -u origin main
+# 验证绑定成功
+(--verbose详细模式;--verbose --verbose更详细模式,显示该分支跟踪的上游远程分支，以及本地与远程的超前/落后情况)
+git branch -vv
+
+# 创建切换新分支
+(git branch feature)
+(git checkout feature)
+git checkout -b feature
+
+# 刷新远程信息
+# 更新所有远程跟踪分支(origin/main, origin/feature)
+git fetch
+# 查看当前文件状态(gs)
+git status
+# 详细提交日志(gl)
+git log origin/feature/planner --oneline --graph --decorate --left-right --all
+# 从远程分支拉取
+(git fetch origin main) 
+(git merge origin/main)
+(git push origin main)
+git fetch 远程仓库名  远程分支名
+							| 					|
+					 origin        main
+git pull  远程仓库名  远程分支名
+							|       		|
+					 origin        main
+git merge 要合并的分支名
+							|
+					orgin/main
+
+# 推送到远程分支
+git push  远程仓库名  本地分支名
+              │           │          
+           origin        main       
+(映射推送:本地分支名≠远程分支名)
+git push origin main:feature
+git push origin HEAD:swerve_hero
+(HEAD:当前所在分支的最新一次提交)
+
+# 撤销暂存区(撤销add)
+git reset
+# 软回退(撤销commit)
+git reset --soft HEAD~1
+# 混合回退(撤销commit和add)
+git reset --mixed HEAD~1
+# 硬回退(直接回到上一个版本)
+git reset --hard HEAD~1
+# 查看操作历史
+git reflog
+# 恢复提交
+git reset --hard e4f5g6h
+
+
+origin          远程仓库名称
+HEAD            当前本地分支最新提交
+swerve_hero     远程目标分支名称
+
+git switch -c swerve_hero在本地新建立远程跟踪分支
+之后只需要git push -u origin swerve_hero
+
+(HEAD：是一个特殊指针，永远指向你当前正在工作的本地位置。
+main：是本地仓库的一个分支指针，指向该分支的最新提交。
+合起来 HEAD -> main：表示 “我当前正处在本地 main 分支上，并且 main 指向这个提交”)
+(HEAD（不带 ->）：表示你处于“分离头指针（Detached HEAD）”状态，没有分支指向这个提交，你只是临时来看一眼这个历史版本)
+HEAD->swerve_hero:当前所在的本地分支
+
+(origin/main 是一个远程跟踪分支（Remote-tracking branch）。
+它不是你手动创建的，而是当你执行 git fetch 或 git push 时，Git 自动更新的。
+本质含义：“上一次和远程仓库 origin 通信时，origin 上 main 分支的位置快照。”)
+origin/swerve_hero:远程跟踪分支;本地保存的远程跟踪分支(refs/remotes/origin/swerve_hero)因为它只是最后一次同步时的记录，所以远程服务器可能已经发生变化,使用git fetch origin main更新当前远程状态
+
+(origin/HEAD 是一个符号引用（Symbolic Reference），它指向远程仓库 origin 的“默认分支”（也就是你在 GitHub/GitLab 仓库页面上看到的默认分支，通常是 main 或 master）。
+它的作用类似于一个“路标”，告诉你：“如果你不带参数 git clone 这个远程仓库，默认会检出哪个分支？”
+查看它指向哪：执行 git remote show origin，你会看到第一行 HEAD branch: main。这就是 origin/HEAD 在告诉你的信息
+实际规则：绝大多数情况下，origin/HEAD 都指向 origin/main（即 origin/HEAD -> origin/main）。如果你在括号里看到 origin/HEAD，它只是跟着 origin/main 的一个“软链接”)
+origin/HEAD:远程默认分支
+
+本地领先于远程
+a1b2c3d (HEAD -> main) 新增了功能
+e4f5g6h (origin/main, origin/HEAD) 旧版本
+
+远程领先于本地
+a1b2c3d (origin/main, origin/HEAD) 队友的新功能
+e4f5g6h (HEAD -> main) 我本地的旧版本
+
+GitHub/Gitee 上的 swerve_hero
+              │
+         git fetch/pull
+              ▼
+本地的 origin/swerve_hero
+
+git branch -vv查看本地分支与远程分支的跟踪关系和提交差异 
+
+
+
+################# minipc ###############
+确定无线接口名称
+nmcli -t -f DEVICE,TYPE device | grep ':wifi$'
+
+安装NetworkManager
+sudo apt install network-manager
+sudo systemctl enable --now NetworkManager
+
+确认 NetworkManager 和无线网卡
+nmcli device status
+DEVICE    TYPE      STATE
+wlp2s0    wifi      disconnected
+enp3s0    ethernet  unavailable
+
+创建企业网络配置:
+sudo nmcli connection add \
+  type wifi \
+  ifname wlan0 \
+  con-name "iFudan-PEAP" \
+  ssid "iFudan.1x" \
+  wifi-sec.key-mgmt wpa-eap \
+  802-1x.eap peap \
+  802-1x.phase2-auth mschapv2 \
+  802-1x.identity "你的学号"
+
+之后重新连接仍执行：
+sudo nmcli --ask connection up "iFudan-PEAP"
+
+校准系统时间
+timedatectl status
+sudo apt update
+sudo apt install chrony
+sudo systemctl enable --now chrony
+
+找到 Windows 与小电脑相连的以太网 IP
+“以太网适配器”，记下它的 IPv4 地址
+ipconfig
+Windows 以太网 IP：192.168.250.1
+Clash Verge 混合端口：7897
+###proxy代理
+你不直接访问目标网站，而是把请求先发给代理服务器，由代理服务器替你去访问，再把结果返回给你
+PROXY_HOST='192.168.250.2'
+PROXY_PORT='7897'
+
+curl --noproxy '' --proxy "http://192.168.250.2:7897" -I --max-time 15 https://www.google.com
+--noproxy 用来指定“哪些主机不要走代理”,写了空字符串后，就强制所有目标都使用下面的代理
+--proxy 指定代理服务器,使用 192.168.137.1 这台机器上的 7897 端口作为 HTTP 代理
+-I 等价于 --head,只发送 HEAD 请求，只获取响应头，不下载网页正文
+--max-time 表示整个请求最多允许持续 15 秒
+
+# 将file1的内容追加到file2末尾
+cat file1.txt >> file2.txt
+
+# 安装我的vim
+git clone git@github.com:Zhang-Meng-111/vimconfig.git
+
+# 安装vim-plug管理器
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+(" 指定插件安装的目录
+call plug#begin('~/.vim/plugged')
+" 在这里声明你想安装的插件
+" 格式：Plug 'GitHub用户名/仓库名'
+" 一个非常经典的文件树插件[reference:6]
+Plug 'preservim/nerdtree'
+" 你之前提到过的 coc.nvim 插件
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" 可以继续添加其他插件...
+" 结束插件声明
+call plug#end())
+(-f (--fail)：如果服务器返回错误（比如网址失效），curl 不输出混乱的 HTML 错误页面，而是静默失败，便于你排查问题。
+-L (--location)：如果网址发生了重定向（GitHub 经常这样做），让 curl 自动跟随跳转到最终的地址，否则只会下载一个跳转提示页面。
+-o (--output)：指定下载内容的保存位置。在这里，它告诉 curl 不要把内容打印到屏幕上，而是直接存入文件。)
+
+
+补装 jellybeans 配色
+mkdir -p ~/.vim/colors
+curl -fL --retry 3 --connect-timeout 15 \
+  https://raw.githubusercontent.com/nanotech/jellybeans.vim/master/colors/jellybeans.vim \
+  -o ~/.vim/colors/jellybeans.vim.tmp \
+  && mv ~/.vim/colors/jellybeans.vim.tmp ~/.vim/colors/jellybeans.vim
+
+注释掉 set smoothscroll
+
+
+# vim 配置使用说明
+操作外层终端画面：Ctrl-W N
+操作内层 Vim：按键直接输入，Esc 退出内层插入模式
+返回终端输入：外层 TERMINAL N 状态按 i
+
+
+
+################# network #############
+# 计算机网络
+查看网络接口统计信息netstat -e
+按协议显示更详细的统计信息betstat -s
+
+
+
+
+
+
+
+################# conda  ##############
+# 查看已有环境
+conda env list
+ 
+# 创建环境
+ conda create -n myenv python=3.11 -y
+
+# 激活环境
+conda activate myenv
+
+# 安装包
+conda install numpy pandas matplotlib
+
+# 查看已安装包
+conda list
+
+# 更新包
+conda update numpy
+
+# 卸载包
+conda remove numpy
+
+# 退出环境
+conda deactivate
+
+# 删除环境
+conda env remove -n myenv
+
+# 导出环境到yml
+conda env export > environments.yml
+
+# 根据yml创建环境
+conda env create -f environments.yml
+
+# 关闭每次启动自动进入base
+conda config --set auto_activate_base false
+
+# 查看配置
+conda config --show
+
+# 安装pytorch
+python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128j
+
+conda 管环境：创建隔离的 Python 环境，管 Python 版本、编译工具、系统级依赖
+pip 管包：装 PyTorch、opencv-python、huggingface_hub 这类发布节奏快、官方只推 pip 的包
